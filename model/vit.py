@@ -111,6 +111,8 @@ class ViT(nn.Module):
             nn.LayerNorm(dim),
             nn.Linear(dim, num_classes)
         )
+        
+        self.softmax = nn.Softmax()
 
     def forward(self, img):
         x = self.to_patch_embedding(img)
@@ -126,4 +128,6 @@ class ViT(nn.Module):
         x = x.mean(dim = 1) if self.pool == 'mean' else x[:, 0]
 
         x = self.to_latent(x)
-        return self.mlp_head(x)
+        x = self.mlp_head(x)
+        
+        return self.softmax(x)
