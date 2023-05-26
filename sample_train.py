@@ -8,6 +8,7 @@ from utils.data_loader import custom_dataloader, filename_to_tensor
 from utils.train_loop import training_loop
 
 from model.vit import  ViT
+
 model = ViT(
     image_size = 640,
     patch_size = 32,

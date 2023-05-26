@@ -28,6 +28,9 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model.to(device)
     
+    print(f"{datetime.datetime.now()} Start train on device {device}")
+    
+    
     for epoch in range(1, n_epochs + 1):  
         # Parameters: Loss train, loss val and accuracy (correct/total)
         loss_train = 0.0
@@ -70,8 +73,8 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
         
         # Print loss of epoch
         print(f"{datetime.datetime.now()} Epoch {epoch}, Training loss {avg_loss}")
-        for name, param in model.state_dict().items():
-            print(name, param)
+        # for name, param in model.state_dict().items():
+        #     print(name, param)
 
         # Eval interval
         # After a number of epoch, evaluate
@@ -97,7 +100,7 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
                 
             # Print validation loss
             print(f"{datetime.datetime.now()} Epoch {epoch}, Validation loss {loss_val / len(val_loader)}")
-            accuracy(model, val_loader, transform)
+            print(f"{datetime.datetime.now()} Epoch {epoch}, Accuracy {correct / total}")
             print("-"*70)
             print("")
             
