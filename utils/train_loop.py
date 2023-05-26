@@ -29,9 +29,13 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
     model.to(device)
     
     for epoch in range(1, n_epochs + 1):  
+        # Parameters: Loss train, loss val and accuracy (correct/total)
         loss_train = 0.0
+        loss_val = 0.0
+        correct = 0
+        total = 0
         
-        # For each batch
+        # Batch training
         for i in range(len(train_loader['label'])):
             # Read data from data loader and transform filename into tensor
             filenames = train_loader['img_path'][i]
@@ -66,29 +70,35 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
         
         # Print loss of epoch
         print(f"{datetime.datetime.now()} Epoch {epoch}, Training loss {avg_loss}")
+        for name, param in model.state_dict().items():
+            print(name, param)
 
         # Eval interval
         # After a number of epoch, evaluate
         if epoch == 1 or epoch % eval_interval == 0:
-            loss_val = 0.0
             with torch.no_grad():
                 for k in range(len(val_loader['label'])):
                     # Read data from data loader and transform filename into tensor
                     val_filenames = val_loader['img_path'][k]
-                    val_labels = val_loader['label'][k]
-                    val_img_batch = filename_to_tensor(val_filenames, transform)
+                    val_labels = val_loader['label'][k].to(device)
+                    val_img_batch = filename_to_tensor(val_filenames, transform).to(device)
                     
-                    # Use ViT for prediction, then calculate the loss 
+                    # Use ViT for prediction, and call torch.max for final pred
                     val_outputs = model(val_img_batch)
+                    _, predicted = torch.max(val_outputs, dim=1)
                     batch_loss_val = loss_fn(val_outputs, val_labels)
                     
                     # Sum all loss to calculate the loss of the epoch
                     loss_val += batch_loss_val.item()
+
+                    # Sum total and correct
+                    total += labels.shape[0] 
+                    correct += int((predicted == val_labels).sum()) 
                 
             # Print validation loss
             print(f"{datetime.datetime.now()} Epoch {epoch}, Validation loss {loss_val / len(val_loader)}")
             accuracy(model, val_loader, transform)
-            print("-"*20)
+            print("-"*70)
             print("")
             
         

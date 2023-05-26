@@ -112,7 +112,7 @@ class ViT(nn.Module):
             nn.Linear(dim, num_classes)
         )
         
-        self.softmax = nn.Softmax()
+        self.softmax = nn.Softmax(dim=0)
 
     def forward(self, img):
         x = self.to_patch_embedding(img)
@@ -130,4 +130,4 @@ class ViT(nn.Module):
         x = self.to_latent(x)
         x = self.mlp_head(x)
         
-        return self.softmax(x)
+        return x

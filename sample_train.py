@@ -4,8 +4,8 @@ import torch.nn.functional as F
 
 from torch import nn, optim
 from torchvision import transforms
-from utils.data_loader import custom_dataloader, filename_to_tensor
-from utils.train_loop import training_loop
+from .utils.data_loader import custom_dataloader, filename_to_tensor
+from .utils.train_loop import training_loop
 
 from model.vit import  ViT
 model = ViT(
@@ -27,11 +27,12 @@ tf = transforms.Compose([
 
 train_loader, val_loader = custom_dataloader("test_ds", 8)
 
-optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+optimizer = optim.Adam(model.parameters(), lr=0.001)
 loss_fn = nn.CrossEntropyLoss()  
 
-n_epochs = 50
+n_epochs = 10
 transform = tf
 saved_path = 'weights'
 
-training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader, transform, saved_path, eval_interval=3)
+training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader, transform, saved_path, eval_interval=1)
