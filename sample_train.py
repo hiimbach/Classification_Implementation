@@ -4,8 +4,8 @@ import torch.nn.functional as F
 
 from torch import nn, optim
 from torchvision import transforms
-from .utils.data_loader import custom_dataloader, filename_to_tensor
-from .utils.train_loop import training_loop
+from utils.data_loader import custom_dataloader, filename_to_tensor
+from utils.train_loop import training_loop
 
 from model.vit import  ViT
 model = ViT(
@@ -25,7 +25,7 @@ tf = transforms.Compose([
     transforms.ToTensor()
 ])
 
-train_loader, val_loader = custom_dataloader("vit_ds_class", 8)
+train_loader, val_loader = custom_dataloader("test_ds", 8)
 
 sample = train_loader['img_path'][0]
 img_batch = filename_to_tensor(sample, tf)

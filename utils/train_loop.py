@@ -21,7 +21,13 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
         
         eval_interval (int): validate after a number of epochs
     '''
+    
     min_loss = 10000
+    
+    # Define device
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model.to(device)
+    
     for epoch in range(1, n_epochs + 1):  
         loss_train = 0.0
         
@@ -30,14 +36,14 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
             # Read data from data loader and transform filename into tensor
             filenames = train_loader['img_path'][i]
             labels = train_loader['label'][i]
-            img_batch = filename_to_tensor(filenames, transform)
+            img_batch = filename_to_tensor(filenames, transform).to(device)
             
             # Use ViT for prediction
             outputs = model(img_batch)
             
             # Convert label to one-hot format to calculate loss
             num_classes= train_loader['num_classes']
-            actual = one_hot(labels, num_classes).type(torch.float32)
+            actual = one_hot(labels, num_classes).type(torch.float32).to(device)
             loss = loss_fn(outputs, actual)
             
             # Backpropagation
