@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 from torchvision.datasets import ImageFolder
 import os 
 
-from model.vit import ViT
+from .model.vit import ViT
 from utils.train_loop import training_loop
 
 # Init model

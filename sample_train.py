@@ -4,8 +4,8 @@ import torch.nn.functional as F
 
 from torch import nn, optim
 from torchvision import transforms
-from utils.data_loader import custom_dataloader, filename_to_tensor
-from utils.train_loop import training_loop
+from .utils.data_loader import custom_dataloader, filename_to_tensor
+from .utils.train_loop import training_loop
 
 from model.vit import  ViT
 model = ViT(
