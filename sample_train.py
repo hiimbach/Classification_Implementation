@@ -27,10 +27,6 @@ tf = transforms.Compose([
 
 train_loader, val_loader = custom_dataloader("test_ds", 8)
 
-sample = train_loader['img_path'][0]
-img_batch = filename_to_tensor(sample, tf)
-preds = model(img_batch)
-
 optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
 loss_fn = nn.CrossEntropyLoss()  
 
