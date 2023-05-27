@@ -25,12 +25,16 @@ def custom_dataloader(dir, batch_size, split_ratio=0.8):
     # This variable is used to store all data read
     data = {}
     num_classes = 0
+    class_names = []
+    class_idx = -1
     
     # First we read all data from the dir
     # Each folder represents for a class
     for folder in os.listdir(dir):
         num_classes += 1
         folder_path = os.path.join(dir, folder)
+        class_names.append(folder)
+        class_idx += 1
         
         data[folder] = {'img_path': [], 'label': []}
         data_folder = data[folder]
@@ -40,7 +44,7 @@ def custom_dataloader(dir, batch_size, split_ratio=0.8):
 
             # In each folder in the data dictionary, we append img and corresponding label in 2 list
             data_folder['img_path'].append(img_path)
-            data_folder['label'].append(int(folder))
+            data_folder['label'].append(class_idx)
             
     # Now we create train dict and val dict to split data
     train_data = {'img_path': [], 'label': []}
@@ -63,7 +67,7 @@ def custom_dataloader(dir, batch_size, split_ratio=0.8):
             val_data['label'].append(data_folder['label'][i])
             
     
-    return create_batch(train_data, batch_size, num_classes), create_batch(val_data, batch_size, num_classes)
+    return create_batch(train_data, batch_size, num_classes), create_batch(val_data, batch_size, num_classes), class_names
     
     
 def create_batch(data, batch_size, num_classes):

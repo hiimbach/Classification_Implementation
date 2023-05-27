@@ -72,7 +72,7 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
         
         
         # Print loss of epoch
-        print(f"{datetime.datetime.now()} Epoch {epoch}, Training loss {avg_loss}")
+        print(f"{datetime.datetime.now()} Epoch {epoch}, Train Loss {avg_loss}")
         # for name, param in model.state_dict().items():
         #     print(name, param)
 
@@ -99,8 +99,9 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
                     correct += int((predicted == val_labels).sum()) 
                 
             # Print validation loss
-            print(f"{datetime.datetime.now()} Epoch {epoch}, Validation loss {loss_val / len(val_loader)}")
-            print(f"{datetime.datetime.now()} Epoch {epoch}, Accuracy {correct / total}")
+            print(f"{datetime.datetime.now()} Epoch {epoch}, Val Loss {loss_val / len(val_loader)}")
+            print(correct, total)
+            print(f"{datetime.datetime.now()} Epoch {epoch}, Val Accuracy {correct / total}")
             print("-"*70)
             print("")
             

@@ -9,10 +9,19 @@ from utils.train_loop import training_loop
 
 from model.vit import  ViT
 
+train_loader, val_loader, classes_names = custom_dataloader("test_ds", 8)
+num_classes = len(classes_names)
+img_size = 480
+
+tf = transforms.Compose([
+    transforms.Resize([img_size,img_size]),
+    transforms.ToTensor()
+])
+
 model = ViT(
-    image_size = 640,
+    image_size = img_size,
     patch_size = 32,
-    num_classes = 4,
+    num_classes = num_classes,
     dim = 1024,
     depth = 6,
     heads = 16,
@@ -21,18 +30,11 @@ model = ViT(
     emb_dropout = 0.1
 )
 
-tf = transforms.Compose([
-    transforms.Resize([640,640]),
-    transforms.ToTensor()
-])
-
-train_loader, val_loader = custom_dataloader("test_ds", 8)
-
-optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+# optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 loss_fn = nn.CrossEntropyLoss()  
 
-n_epochs = 10
+n_epochs = 50
 transform = tf
 saved_path = 'weights'
 
