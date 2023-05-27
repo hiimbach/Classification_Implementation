@@ -4,15 +4,6 @@ from .data_loader import filename_to_tensor
 def accuracy(model, dataloader, transform):
     correct = 0
     total = 0
-
-    # # torch.no_grad() not to let model update weights
-    # with torch.no_grad():  
-    #     for imgs, labels in loader: 
-    #         outputs = model(imgs)
-    #         _, predicted = torch.max(outputs, dim=1) 
-    #         total += labels.shape[0] 
-    #         correct += int((predicted == labels).sum())   
-    
          
     with torch.no_grad():
         for k in range(len(dataloader['label'])):
