@@ -1,15 +1,15 @@
-import torch
-import numpy as np
+# import torch
+# import numpy as np
 import torch.nn.functional as F
 
 from torch import nn, optim
 from torchvision import transforms
-from utils.data_loader import custom_dataloader, filename_to_tensor
-from utils.train_loop import training_loop
 
+from utils.data_loader import custom_dataloader
+from utils.train_loop import training_loop
 from model.vit import  ViT
 
-train_loader, val_loader, classes_names = custom_dataloader("test_ds", 8)
+train_loader, val_loader, classes_names = custom_dataloader("mushrooms_test", 8)
 num_classes = len(classes_names)
 img_size = 480
 

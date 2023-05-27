@@ -64,13 +64,6 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
         # Average loss over batches
         avg_loss = loss_train / len(train_loader['label'])
         
-        
-        # Replace best checkpoint if loss < min_loss:
-        if avg_loss < min_loss:
-            min_loss = avg_loss
-            torch.save(model.state_dict(), os.path.join(saved_path, "best_ckpt.pt"))
-        
-        
         # Print loss of epoch
         print(f"{datetime.datetime.now()} Epoch {epoch}, Train Loss {avg_loss}")
         # for name, param in model.state_dict().items():
@@ -88,23 +81,30 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
                     
                     # Use ViT for prediction, and call torch.max for final pred
                     val_outputs = model(val_img_batch)
-                    _, predicted = torch.max(val_outputs, dim=1)
                     batch_loss_val = loss_fn(val_outputs, val_labels)
+                    _, predicted = torch.max(val_outputs, dim=1)
+                    
+                    # print(val_outputs[0])
+                    # print(predicted[0], val_labels[0])
                     
                     # Sum all loss to calculate the loss of the epoch
                     loss_val += batch_loss_val.item()
 
                     # Sum total and correct
-                    total += labels.shape[0] 
+                    total += val_labels.shape[0] 
                     correct += int((predicted == val_labels).sum()) 
-                
+                    
             # Print validation loss
             print(f"{datetime.datetime.now()} Epoch {epoch}, Val Loss {loss_val / len(val_loader)}")
-            print(correct, total)
+            # print(correct, total)
             print(f"{datetime.datetime.now()} Epoch {epoch}, Val Accuracy {correct / total}")
             print("-"*70)
             print("")
             
+            # Replace best checkpoint if loss < min_loss:
+            if avg_loss < min_loss:
+                min_loss = avg_loss
+                torch.save(model.state_dict(), os.path.join(saved_path, "best_ckpt.pt"))
         
     # Save last checkpoint
     torch.save(model.state_dict(), os.path.join(saved_path, "last_ckpt.pt"))
