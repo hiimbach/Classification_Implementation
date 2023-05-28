@@ -22,7 +22,7 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
         eval_interval (int): validate after a number of epochs
     '''
     
-    min_loss = 10000
+    max_acc = 0
     
     # Define device
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -93,18 +93,20 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
                     # Sum total and correct
                     total += val_labels.shape[0] 
                     correct += int((predicted == val_labels).sum()) 
+                acc = correct / total
+                # Replace best checkpoint if loss < min_loss:
+                if acc > max_acc:
+                    max_acc = acc
+                    torch.save(model.state_dict(), os.path.join(saved_path, "best_ckpt.pt"))
                     
             # Print validation loss
             print(f"{datetime.datetime.now()} Epoch {epoch}, Val Loss {loss_val / len(val_loader)}")
             print(correct, total)
-            print(f"{datetime.datetime.now()} Epoch {epoch}, Val Accuracy {correct / total}")
+            print(f"{datetime.datetime.now()} Epoch {epoch}, Val Accuracy {acc}")
             print("-"*70)
             print("")
             
-            # Replace best checkpoint if loss < min_loss:
-            if avg_loss < min_loss:
-                min_loss = avg_loss
-                torch.save(model.state_dict(), os.path.join(saved_path, "best_ckpt.pt"))
+            
         
     # Save last checkpoint
     torch.save(model.state_dict(), os.path.join(saved_path, "last_ckpt.pt"))
