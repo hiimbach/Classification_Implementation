@@ -8,6 +8,7 @@ from torchvision import transforms
 from utils.data_loader import custom_dataloader
 from utils.train_loop import training_loop
 from model.vit import  ViT
+from model.resnet import ResNet50
 
 train_loader, val_loader, classes_names = custom_dataloader("mushrooms_test", 8)
 num_classes = len(classes_names)
@@ -18,17 +19,19 @@ tf = transforms.Compose([
     transforms.ToTensor()
 ])
 
-model = ViT(
-    image_size = img_size,
-    patch_size = 32,
-    num_classes = num_classes,
-    dim = 1024,
-    depth = 6,
-    heads = 16,
-    mlp_dim = 2048,
-    dropout = 0.1,
-    emb_dropout = 0.1
-)
+# model = ViT(
+#     image_size = img_size,
+#     patch_size = 32,
+#     num_classes = num_classes,
+#     dim = 1024,
+#     depth = 6,
+#     heads = 16,
+#     mlp_dim = 2048,
+#     dropout = 0.1,
+#     emb_dropout = 0.1
+# )
+
+model = ResNet50(num_classes)
 
 # optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 optimizer = optim.Adam(model.parameters(), lr=0.001)

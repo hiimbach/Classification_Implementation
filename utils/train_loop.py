@@ -66,8 +66,8 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
         
         # Print loss of epoch
         print(f"{datetime.datetime.now()} Epoch {epoch}, Train Loss {avg_loss}")
-        # for name, param in model.state_dict().items():
-        #     print(name, param)
+        # for name, param in :
+        # print(model.state_dict().items()[0], model.state_dict().items()[1])
 
         # Eval interval
         # After a number of epoch, evaluate
@@ -96,7 +96,7 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
                     
             # Print validation loss
             print(f"{datetime.datetime.now()} Epoch {epoch}, Val Loss {loss_val / len(val_loader)}")
-            # print(correct, total)
+            print(correct, total)
             print(f"{datetime.datetime.now()} Epoch {epoch}, Val Accuracy {correct / total}")
             print("-"*70)
             print("")
