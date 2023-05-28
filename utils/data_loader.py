@@ -4,8 +4,11 @@ import torch
 import random
 
 from torchvision import transforms
-from PIL import Image
+from PIL import Image, ImageFile
 from sklearn.model_selection import train_test_split
+
+# Avoid image truncates
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 def custom_dataloader(dir, batch_size, split_ratio=0.8):
     '''
