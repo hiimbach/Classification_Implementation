@@ -5,10 +5,10 @@ import torch.nn.functional as F
 from torch import nn, optim
 from torchvision import transforms
 
-from utils.data_loader import custom_dataloader
-from utils.train_loop import training_loop
-from model.vit import  ViT
-from model.resnet import ResNet50
+from .utils.data_loader import custom_dataloader
+from .utils.train_loop import training_loop
+from .model.vit import  ViT
+from .model.resnet import ResNet50
 
 train_loader, val_loader, classes_names = custom_dataloader("/content/drive/MyDrive/mushrooms", 32)
 num_classes = len(classes_names)
