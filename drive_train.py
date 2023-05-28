@@ -1,4 +1,4 @@
-# import torch
+import torch
 # import numpy as np
 import torch.nn.functional as F
 
@@ -40,5 +40,10 @@ loss_fn = nn.CrossEntropyLoss()
 n_epochs = 50
 transform = tf
 saved_path = ''
+
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+weight_path = '/content/drive/MyDrive/weights/mushrooms.pt'
+model.load_state_dict(torch.load(weight_path, map_location=device))
 
 training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader, transform, saved_path, eval_interval=1)
