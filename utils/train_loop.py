@@ -47,6 +47,7 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
         total = 0
         
         # Batch training
+        model.train()
         for i in tqdm(range(len(train_loader['label'])), desc="Training"):
             # Read data from data loader and transform filename into tensor
             filenames = train_loader['img_path'][i]
@@ -60,7 +61,6 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
             num_classes= train_loader['num_classes']
             actual = one_hot(labels, num_classes).type(torch.float32).to(device)
             loss = loss_fn(outputs, actual)
-            print(loss)
             
             # Backpropagation
             optimizer.zero_grad()
@@ -103,7 +103,6 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
                     
                     # Sum all loss to calculate the loss of the epoch
                     loss_val += batch_loss_val.item()
-                    print(batch_loss_val)
 
                     # Sum total and correct
                     total += val_labels.shape[0] 
