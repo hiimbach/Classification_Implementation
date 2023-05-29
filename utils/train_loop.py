@@ -1,6 +1,7 @@
 import datetime
 import torch 
 import os 
+from tqdm import tqdm
 
 from torch.nn.functional import one_hot
 
@@ -32,6 +33,7 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
     
     
     for epoch in range(1, n_epochs + 1):  
+        print(f"Epoch {epoch}")
         # Parameters: Loss train, loss val and accuracy (correct/total)
         loss_train = 0.0
         loss_val = 0.0
@@ -39,7 +41,7 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
         total = 0
         
         # Batch training
-        for i in range(len(train_loader['label'])):
+        for i in tqdm(range(len(train_loader['label'])), desc="Training"):
             # Read data from data loader and transform filename into tensor
             filenames = train_loader['img_path'][i]
             labels = train_loader['label'][i]
@@ -65,7 +67,7 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
         avg_loss = loss_train / len(train_loader['label'])
         
         # Print loss of epoch
-        print(f"{datetime.datetime.now()} Epoch {epoch}, Train Loss {avg_loss}")
+        print(f"{datetime.datetime.now()} Train Loss {avg_loss}")
         # for name, param in :
         # print(model.state_dict().items()[0], model.state_dict().items()[1])
         
@@ -75,8 +77,9 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
         # Eval interval
         # After a number of epoch, evaluate
         if epoch == 1 or epoch % eval_interval == 0:
+            print("-"*70)   
             with torch.no_grad():
-                for k in range(len(val_loader['label'])):
+                for k in tqdm(range(len(val_loader['label'])), desc="Validate"):
                     # Read data from data loader and transform filename into tensor
                     val_filenames = val_loader['img_path'][k]
                     val_labels = val_loader['label'][k].to(device)
@@ -103,10 +106,10 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
                     torch.save(model.state_dict(), os.path.join(saved_path, "best_ckpt.pt"))
                     
             # Print validation loss
-            print(f"{datetime.datetime.now()} Epoch {epoch}, Val Loss {loss_val / len(val_loader)}")
+            print(f"{datetime.datetime.now()}Val Loss {loss_val / len(val_loader)}")
             print(correct, total)
-            print(f"{datetime.datetime.now()} Epoch {epoch}, Val Accuracy {acc}")
-            print("-"*70)
+            print(f"{datetime.datetime.now()} Val Accuracy {acc}")
+            print("="*70)
             print("")
             
             
