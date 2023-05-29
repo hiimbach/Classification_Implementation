@@ -60,6 +60,7 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
             num_classes= train_loader['num_classes']
             actual = one_hot(labels, num_classes).type(torch.float32).to(device)
             loss = loss_fn(outputs, actual)
+            print(loss)
             
             # Backpropagation
             optimizer.zero_grad()
@@ -102,12 +103,13 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
                     
                     # Sum all loss to calculate the loss of the epoch
                     loss_val += batch_loss_val.item()
+                    print(batch_loss_val)
 
                     # Sum total and correct
                     total += val_labels.shape[0] 
                     correct += int((predicted == val_labels).sum()) 
                 acc = correct / total
-                avg_val_loss = loss_val / len(val_loader)
+                avg_val_loss = loss_val / len(val_loader['label'])
                 # Replace best checkpoint if loss < min_loss:
                 if acc > max_acc:
                     max_acc = acc
