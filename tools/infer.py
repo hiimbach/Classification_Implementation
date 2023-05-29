@@ -10,20 +10,23 @@ if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))
 
 from model.vit import ViT
+from model.resnet import ResNet50
 from utils.data_loader import filename_to_tensor
 
 img_size = 640
-model = ViT(
-    image_size = img_size,
-    patch_size = 32,
-    num_classes = 9,
-    dim = 1024,
-    depth = 6,
-    heads = 16,
-    mlp_dim = 2048,
-    dropout = 0.1,
-    emb_dropout = 0.1
-)
+# model = ViT(
+#     image_size = img_size,
+#     patch_size = 32,
+#     num_classes = 9,
+#     dim = 1024,
+#     depth = 6,
+#     heads = 16,
+#     mlp_dim = 2048,
+#     dropout = 0.1,
+#     emb_dropout = 0.1
+# )
+
+model = ResNet50(9)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -33,10 +36,11 @@ tf = transforms.Compose([
     transforms.ToTensor()
 ])
 
-# weight_path = 'weights/best_ckpt.pt'
-# model.load_state_dict(torch.load(weight_path, map_location=device))
 
 path = "mushrooms_test/Agaricus"
+weight_path = "weights/last_ckpt.pt"
+model.load_state_dict(torch.load(weight_path, map_location=device))
+
 
 # Infer
 def inference(model, path, transform, weight_path=None, batch_size=None):
