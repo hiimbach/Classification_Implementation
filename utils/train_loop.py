@@ -3,7 +3,9 @@ import torch
 import os 
 from tqdm import tqdm
 
+
 from torch.nn.functional import one_hot
+from torch.utils.tensorboard import SummaryWriter
 
 from .data_loader import filename_to_tensor 
 from .accuracy import accuracy
@@ -23,6 +25,10 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
         eval_interval (int): validate after a number of epochs
     '''
     
+    # Prepare for tensorboard
+    writer = SummaryWriter("runs/mushrooms")
+    
+    # Max accuracy - used to find best checkpoint
     max_acc = 0
     
     # Define device
@@ -63,8 +69,9 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
             # Sum all loss to calculate the loss of the epoch
             loss_train += loss.item()
         
-        # Average loss over batches
+        # Average train loss over batches
         avg_loss = loss_train / len(train_loader['label'])
+        writer.add_scalar("Loss/train", avg_loss, epoch)
         
         # Print loss of epoch
         print(f"{datetime.datetime.now()} Train Loss {avg_loss}")
@@ -77,7 +84,7 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
         # Eval interval
         # After a number of epoch, evaluate
         if epoch == 1 or epoch % eval_interval == 0:
-            print("-"*70)   
+            print("-"*50)   
             with torch.no_grad():
                 for k in tqdm(range(len(val_loader['label'])), desc="Validate"):
                     # Read data from data loader and transform filename into tensor
@@ -100,18 +107,27 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
                     total += val_labels.shape[0] 
                     correct += int((predicted == val_labels).sum()) 
                 acc = correct / total
+                avg_val_loss = loss_val / len(val_loader)
                 # Replace best checkpoint if loss < min_loss:
                 if acc > max_acc:
                     max_acc = acc
                     torch.save(model.state_dict(), os.path.join(saved_path, "best_ckpt.pt"))
                     
+            # Write to tensorboard
+            writer.add_scalar("Loss/val", avg_val_loss, epoch)
+            writer.add_scalar("Accuracy/val", acc, epoch)
+                    
+            
             # Print validation loss
-            print(f"{datetime.datetime.now()}Val Loss {loss_val / len(val_loader)}")
+            print(f"{datetime.datetime.now()} Val Loss {avg_val_loss}")
             print(correct, total)
             print(f"{datetime.datetime.now()} Val Accuracy {acc}")
             print("="*70)
             print("")
             
+    writer.close()
+    return
+        
             
         
     

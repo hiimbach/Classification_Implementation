@@ -162,6 +162,9 @@ cython_debug/
 # Images
 *jpg
 
+# Log
+events*
+
 
 # Weights
 *.pt
