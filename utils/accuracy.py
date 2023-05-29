@@ -12,7 +12,7 @@ def accuracy(model, dataloader, transform):
             labels = dataloader['label'][k]
             img_batch = filename_to_tensor(filenames, transform)
             
-            # Use ViT for prediction, then calculate the loss 
+            # Use ViT for prediction 
             outputs = model(img_batch)
             _, predicted = torch.max(outputs, dim=1)
             

@@ -12,26 +12,26 @@ from model.resnet import ResNet50
 
 train_loader, val_loader, classes_names = custom_dataloader("mushrooms_test", 8)
 num_classes = len(classes_names)
-img_size = 480
+img_size = 640
 
 tf = transforms.Compose([
     transforms.Resize([img_size,img_size]),
     transforms.ToTensor()
 ])
 
-# model = ViT(
-#     image_size = img_size,
-#     patch_size = 32,
-#     num_classes = num_classes,
-#     dim = 1024,
-#     depth = 6,
-#     heads = 16,
-#     mlp_dim = 2048,
-#     dropout = 0.1,
-#     emb_dropout = 0.1
-# )
+model = ViT(
+    image_size = img_size,
+    patch_size = 32,
+    num_classes = num_classes,
+    dim = 1024,
+    depth = 6,
+    heads = 16,
+    mlp_dim = 2048,
+    dropout = 0.1,
+    emb_dropout = 0.1
+)
 
-model = ResNet50(num_classes)
+# model = ResNet50(num_classes)
 
 # optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 optimizer = optim.Adam(model.parameters(), lr=0.001)

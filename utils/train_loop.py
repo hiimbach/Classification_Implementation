@@ -68,6 +68,9 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
         print(f"{datetime.datetime.now()} Epoch {epoch}, Train Loss {avg_loss}")
         # for name, param in :
         # print(model.state_dict().items()[0], model.state_dict().items()[1])
+        
+        # Save last checkpoint
+        torch.save(model.state_dict(), os.path.join(saved_path, "last_ckpt.pt"))
 
         # Eval interval
         # After a number of epoch, evaluate
@@ -108,6 +111,5 @@ def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader,
             
             
         
-    # Save last checkpoint
-    torch.save(model.state_dict(), os.path.join(saved_path, "last_ckpt.pt"))
+    
         
