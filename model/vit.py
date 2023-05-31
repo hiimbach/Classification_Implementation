@@ -130,4 +130,4 @@ class ViT(nn.Module):
         x = self.to_latent(x)
         x = self.mlp_head(x)
         
-        return self.softmax(x)
+        return x

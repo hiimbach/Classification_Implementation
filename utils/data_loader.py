@@ -70,10 +70,70 @@ def custom_dataloader(dir, batch_size, split_ratio=0.8):
             val_data['label'].append(data_folder['label'][i])
             
     
-    return create_batch(train_data, batch_size, num_classes), create_batch(val_data, batch_size, num_classes), class_names
+    return create_data_loader(train_data, batch_size, num_classes), create_data_loader(val_data, batch_size, num_classes), class_names
     
+def data_split(dir, split_ratio=0.8):
+    '''
+    Parameters:
+        dir: data directory, format as:
+            0/a.jpg
+            1/b.jpg
+            ...
+        batch_size (int)
+        split_ratio: the ratio of train_data/all_data
     
-def create_batch(data, batch_size, num_classes):
+    Return:
+        train_data (dict): {'img_path': [], 'label': []}
+        val_data (dict): {'img_path': [], 'label': []}
+    '''
+    
+    # This variable is used to store all data read
+    data = {}
+    num_classes = 0
+    class_names = []
+    class_idx = -1
+    
+    # First we read all data from the dir
+    # Each folder represents for a class
+    for folder in os.listdir(dir):
+        num_classes += 1
+        folder_path = os.path.join(dir, folder)
+        class_names.append(folder)
+        class_idx += 1
+        
+        data[folder] = {'img_path': [], 'label': []}
+        data_folder = data[folder]
+        
+        for item in os.listdir(folder_path):
+            img_path = os.path.join(folder_path, item)
+
+            # In each folder in the data dictionary, we append img and corresponding label in 2 list
+            data_folder['img_path'].append(img_path)
+            data_folder['label'].append(class_idx)
+            
+    # Now we create train dict and val dict to split data
+    train_data = {'img_path': [], 'label': []}
+    val_data = {'img_path': [], 'label': []}
+
+    # Split data to train and val
+    for folder in data:
+        data_folder = data[folder]
+        
+        # Choose img and corresponding label randomly
+        idx = range(len(data_folder['label']))
+        train_idx, test_idx = train_test_split(idx, test_size=(1-split_ratio))
+        for i in train_idx:
+            train_data['img_path'].append(data_folder['img_path'][i])
+            train_data['label'].append(data_folder['label'][i])
+            
+        for i in test_idx:
+            val_data['img_path'].append(data_folder['img_path'][i])
+            val_data['label'].append(data_folder['label'][i])
+    
+    return train_data, val_data, num_classes
+
+    
+def create_data_loader(data, batch_size, num_classes):
     # Use to create batch and generate dataloader
     '''
     Argument: 
