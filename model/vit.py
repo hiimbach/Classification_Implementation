@@ -16,8 +16,8 @@ class PreNorm(nn.Module):
         super().__init__()
         self.norm = nn.LayerNorm(dim)
         self.fn = fn
-    def forward(self, x, **kwargs):
-        return self.fn(self.norm(x), **kwargs)
+    def forward(self, x):
+        return self.fn(self.norm(x))
 
 class FeedForward(nn.Module):
     def __init__(self, dim, hidden_dim, dropout = 0.):
@@ -52,8 +52,10 @@ class Attention(nn.Module):
         ) if project_out else nn.Identity()
 
     def forward(self, x):
-        qkv = self.to_qkv(x).chunk(3, dim = -1)
-        q, k, v = map(lambda t: rearrange(t, 'b n (h d) -> b h n d', h = self.heads), qkv)
+        q, k, v = self.to_qkv(x).chunk(3, dim = -1)
+        q = rearrange(q, 'b n (h d) -> b h n d', h = self.heads)
+        k = rearrange(k, 'b n (h d) -> b h n d', h = self.heads)
+        v = rearrange(v, 'b n (h d) -> b h n d', h = self.heads)
 
         dots = torch.matmul(q, k.transpose(-1, -2)) * self.scale
 
