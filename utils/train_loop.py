@@ -108,7 +108,7 @@ class TrainingLoop():
             train_losses = []
             
             # Batch training
-            for images, labels in tqdm(self.train_loader):
+            for images, labels in tqdm(self.train_loader, desc="Training"):
                 # Training step get loss
                 train_loss = self.training_step(images, labels)
                 train_losses.append(train_loss)
@@ -128,7 +128,7 @@ class TrainingLoop():
                 correct = 0
                 total = 100
                 
-                for images, labels in tqdm(self.val_loader):
+                for images, labels in tqdm(self.val_loader, desc="Validating"):
                     # Training step get loss
                     result = self.validation_step(images, labels)
                     val_loss = result['val_loss']
