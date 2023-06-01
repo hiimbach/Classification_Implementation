@@ -17,7 +17,7 @@ from torchsummary import summary
 from torchvision.models import resnet50, ResNet50_Weights
  
  
-model = resnet50(weights=ResNet50_Weights.IMAGENET1K_V2)
+model = resnet50(pretrained=False)
 newfc = torch.nn.Linear(in_features=model.fc.in_features, out_features=9, bias=True)
 model.fc = newfc
 
@@ -27,6 +27,7 @@ model.fc = newfc
 
 # summary(model, (3, 640, 640))
 
+# model = ViT()
 
 
 train_transform = transforms.Compose([
