@@ -3,8 +3,6 @@ import torch
 import torchvision
 import os 
 from tqdm import tqdm
-import math
-
 
 from torch.nn.functional import one_hot
 from torch.utils.tensorboard import SummaryWriter
@@ -21,14 +19,16 @@ class TrainingLoop():
                         loss_fn, 
                         optim_fn: torch.optim, 
                         lr: float, 
-                        transform: torchvision.transforms, 
+                        train_transform: torchvision.transforms, 
+                        val_transform: torchvision.transforms, 
                         data_split_ratio = 0.8):
         
         self.model = model
         self.batch_size = batch_size
         self.loss_fn = loss_fn
         self.optimizer = optim_fn(self.model.parameters(), lr)
-        self.transform = transform
+        self.train_transform = train_transform
+        self.val_transform = val_transform
         
         # Specfically for loading data and evaluation
         self.train_data, self.val_data, self.num_classes = data_split(data_path, split_ratio=data_split_ratio)
@@ -43,15 +43,15 @@ class TrainingLoop():
         
     def training_step(self, img_path_batch, labels):
         # Create tensor batches from img paths
-        img_batch = filename_to_tensor(img_path_batch, self.transform)
+        img_batch = filename_to_tensor(img_path_batch, self.train_transform).to(self.device)
         
-        # Calculate loss
+        # Predict
         out = self.model(img_batch)
         actual = self.one_hot_label(labels)
-        loss = self.loss_fn(out, actual)
         
         # Backpropagation
         self.optimizer.zero_grad()
+        loss = self.loss_fn(out, actual)
         loss.backward()
         self.optimizer.step()
                 
@@ -61,7 +61,7 @@ class TrainingLoop():
     def validation_step(self, img_path_batch, labels):
         with torch.no_grad():
             # Create tensor batches from img paths
-            img_batch = filename_to_tensor(img_path_batch, self.transform)
+            img_batch = filename_to_tensor(img_path_batch, self.val_transform).to(self.device)
             
             # Calculate loss and accuracy
             out = self.model(img_batch)
@@ -76,7 +76,7 @@ class TrainingLoop():
         return one_hot(labels, self.num_classes).type(torch.float32).to(self.device)
             
         
-    def fit(self, n_epochs, save_name, eval_interval=5):
+    def train(self, n_epochs, save_name, eval_interval=5):
         '''
         Parameters:
             n_epochs (int): Number of epoch trained
@@ -110,7 +110,7 @@ class TrainingLoop():
             for i in tqdm(range(len(train_loader['label'])), desc="Training"):
                 # Read data from train_loader
                 img_path_batch = train_loader['img_path'][i]
-                labels = train_loader['label'][i]
+                labels = train_loader['label'][i].to(self.device)
                 
                 # Training step get loss
                 train_loss = self.training_step(img_path_batch, labels)
@@ -136,7 +136,7 @@ class TrainingLoop():
                 for k in tqdm(range(len(val_loader['label'])), desc="Validate"):
                     # Read data from train_loader
                     img_path_batch = val_loader['img_path'][k]
-                    labels = val_loader['label'][k]
+                    labels = val_loader['label'][k].to(self.device)
                     
                     # Training step get loss
                     result = self.validation_step(img_path_batch, labels)
@@ -167,7 +167,7 @@ class TrainingLoop():
         return
         
         
-def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader, transform, saved_path, eval_interval=5):
+def training_loop(n_epochs, optimizer, model, loss_fn, train_loader, val_loader, saved_path, eval_interval=5):
     '''
     Parameters:
         n_epochs (int): Number of epoch trained
