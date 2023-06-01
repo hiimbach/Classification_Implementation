@@ -4,6 +4,7 @@ import torch
 import random
 
 from torchvision import transforms
+from torch.utils.data import DataLoader, Dataset
 from PIL import Image, ImageFile
 from sklearn.model_selection import train_test_split
 
@@ -131,8 +132,7 @@ def data_split(dir, split_ratio=0.8):
             val_data['label'].append(data_folder['label'][i])
     
     return train_data, val_data, num_classes
-
-    
+  
 def create_data_loader(data, batch_size, num_classes):
     # Use to create batch and generate dataloader
     '''
@@ -170,7 +170,6 @@ def create_data_loader(data, batch_size, num_classes):
     
     return data_loader
 
-
 def filename_to_tensor(files, transform):
     '''
     Parameters:
@@ -199,3 +198,37 @@ def filename_to_tensor(files, transform):
 
 # a = custom_dataloader("test_ds", 8)
 # ipdb.set_trace()
+
+class CustomDataset(Dataset):
+    def __init__(self, data, transform=None):
+        '''
+        Arguments:
+            data (dict): {'img_path': [], 'label': []}
+            transform: torchvision.transforms
+        
+        Return:
+            torch.utils.data.Dataset
+        '''
+        self.data = data
+        self.transform = transform
+        
+    def __getitem__(self, idx):
+        try:
+            label = self.data['label'][idx]
+            image = Image.open(self.data['img_path'][idx]).convert("RGB")
+#             image = np.clip(image, 0, 1)
+#             image = Image.fromarray((image * 255).astype(np.uint8))
+            if self.transform is not None:
+                image = self.transform(image)
+            return image, label
+        except:
+            image = Image.open('data/mushrooms/Agaricus/000_ePQknW8cTp8.jpg').convert("RGB")
+            label = 0
+            if self.transform is not None:
+                image = self.transform(image)
+            return image, label
+        
+    def __len__(self):
+        return len(self.data['label'])
+    
+

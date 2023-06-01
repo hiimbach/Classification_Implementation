@@ -1,7 +1,6 @@
 import torch
 import os
 import sys
-import ipdb
 
 ROOT = os.getcwd()
 if str(ROOT) not in sys.path:
@@ -28,7 +27,6 @@ model.fc = newfc
 
 # summary(model, (3, 640, 640))
 
-# ipdb.set_trace()
 
 
 train_transform = transforms.Compose([
@@ -53,5 +51,7 @@ loss_fn = nn.CrossEntropyLoss()
 optim_fn = optim.Adam
 
 train_task = TrainingLoop(model, data_path, batch_size, loss_fn, optim_fn, 0.001, train_transform, val_transform)
+# import ipdb
+# ipdb.set_trace()
 
 train_task.train(10, "test", 1)

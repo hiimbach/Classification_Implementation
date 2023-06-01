@@ -7,8 +7,9 @@ from tqdm import tqdm
 from torch.nn.functional import one_hot
 from torch.utils.tensorboard import SummaryWriter
 from sklearn.model_selection import train_test_split
+from torch.utils.data import DataLoader
 
-from .data_loader import filename_to_tensor, create_data_loader, data_split
+from .data_loader import filename_to_tensor, data_split, CustomDataset
 from .metric import accuracy, compare
 
 
@@ -30,43 +31,46 @@ class TrainingLoop():
         self.train_transform = train_transform
         self.val_transform = val_transform
         
-        # Specfically for loading data and evaluation
-        self.train_data, self.val_data, self.num_classes = data_split(data_path, split_ratio=data_split_ratio)
-        self.num_train_batches = len(self.train_data['label'])//batch_size + 1  # Number of batches of train loader
-        self.len_val_data = len(self.val_data['label'])
-        self.num_val_batches = self.len_val_data//batch_size + 1  # Number of batches of val loader
+        # Prepare data for training and evaluation
+        train_data, val_data, self.num_classes = data_split(data_path, split_ratio=data_split_ratio)
+        train_dataset = CustomDataset(train_data, train_transform)
+        val_dataset = CustomDataset(val_data, val_transform)
+        self.train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+        self.val_loader = DataLoader(val_dataset, batch_size=64, shuffle=False)
         
         # Define training device 
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model.to(self.device)
     
         
-    def training_step(self, img_path_batch, labels):
-        # Create tensor batches from img paths
-        img_batch = filename_to_tensor(img_path_batch, self.train_transform).to(self.device)
+    def training_step(self, images, labels):
+        # Move images and labels to device
+        images.to(self.device)
+        labels.to(self.device)
         
         # Predict
-        out = self.model(img_batch)
-        actual = self.one_hot_label(labels)
+        out = self.model(images)
+        # actual = self.one_hot_label(labels)
         
         # Backpropagation
         self.optimizer.zero_grad()
-        loss = self.loss_fn(out, actual)
+        loss = self.loss_fn(out, labels)
         loss.backward()
         self.optimizer.step()
                 
         return loss.item()
 
         
-    def validation_step(self, img_path_batch, labels):
+    def validation_step(self, images, labels):
         with torch.no_grad():
             # Create tensor batches from img paths
-            img_batch = filename_to_tensor(img_path_batch, self.val_transform).to(self.device)
+            images.to(self.device)
+            labels.to(self.device)
             
             # Calculate loss and accuracy
-            out = self.model(img_batch)
-            actual = self.one_hot_label(labels)
-            loss = self.loss_fn(out, actual)
+            out = self.model(images)
+            # actual = self.one_hot_label(labels)
+            loss = self.loss_fn(out, labels)
             correct = compare(out, labels)  
             
         return {'val_loss': loss.detach(), 'correct': correct}
@@ -101,19 +105,12 @@ class TrainingLoop():
         for epoch in range(1, n_epochs + 1):  
             # Training Phase
             print(f"Epoch {epoch}")
-            
-            # Create data_loader
-            train_loader = create_data_loader(self.train_data, self.batch_size, self.num_classes)
             train_losses = []
-                        
+            
             # Batch training
-            for i in tqdm(range(len(train_loader['label'])), desc="Training"):
-                # Read data from train_loader
-                img_path_batch = train_loader['img_path'][i]
-                labels = train_loader['label'][i].to(self.device)
-                
+            for images, labels in tqdm(self.train_loader):
                 # Training step get loss
-                train_loss = self.training_step(img_path_batch, labels)
+                train_loss = self.training_step(images, labels)
                 train_losses.append(train_loss)
                 
             # End training phase
@@ -127,19 +124,13 @@ class TrainingLoop():
             ###########################################################################################
             # After (eval_interval) epoch, go validating 
             if epoch == 1 or epoch % eval_interval == 0:
-                # Creat data_loader
-                val_loader = create_data_loader(self.val_data, self.batch_size, self.num_classes)
                 val_losses = []
                 correct = 0
-                total = self.len_val_data
+                total = 100
                 
-                for k in tqdm(range(len(val_loader['label'])), desc="Validate"):
-                    # Read data from train_loader
-                    img_path_batch = val_loader['img_path'][k]
-                    labels = val_loader['label'][k].to(self.device)
-                    
+                for images, labels in tqdm(self.val_loader):
                     # Training step get loss
-                    result = self.validation_step(img_path_batch, labels)
+                    result = self.validation_step(images, labels)
                     val_loss = result['val_loss']
                     val_losses.append(val_loss)    
                     correct += result['correct']
