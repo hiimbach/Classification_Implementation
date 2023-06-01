@@ -15,7 +15,7 @@ from model.resnet import ResNet50
 from utils.data_loader import filename_to_tensor
 
 class MushroomClassifier():
-    def __init__(self, model_path='model/scripted_model/test.pt'):
+    def __init__(self, model_path='model/scripted_model/wtf.pt'):
         self.model = torch.jit.load(model_path)
         self.model.eval()
         
@@ -36,8 +36,8 @@ class MushroomClassifier():
         return int(preds[0])
 
 if __name__ == '__main__':
-    classifier = MushroomClassifier()
-    test_img = Image.open('test.jpg')
+    classifier = MushroomClassifier("model/scripted_model/wtf.pt")
+    test_img = Image.open('data/mushrooms/Entoloma/007_zw2GdaME06A.jpg')
     result = classifier.predict(test_img)
     print(result)
 

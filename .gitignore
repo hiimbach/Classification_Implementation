@@ -169,4 +169,5 @@ events*
 
 # Weights
 *.pt
+*.pth
 model/scripted_model/*

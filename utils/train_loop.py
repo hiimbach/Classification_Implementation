@@ -97,6 +97,7 @@ class TrainingLoop():
         
         for epoch in range(1, n_epochs + 1):  
             # Training Phase
+            self.model.train()
             print(f"Epoch {epoch}")
             train_losses = []
             
@@ -108,12 +109,15 @@ class TrainingLoop():
                 # Predict
                 out = self.model(images)
                 train_loss = self.loss_fn(out, labels)
+                print(train_loss)
                 
                 # Backpropagation
                 self.optimizer.zero_grad()
                 train_loss.backward()
                 self.optimizer.step()
                 train_losses.append(train_loss.item())
+                
+                print(self.model.fc.weight)
                 
             # End training phase
             mean_train_loss = sum(train_losses)/len(train_losses)
