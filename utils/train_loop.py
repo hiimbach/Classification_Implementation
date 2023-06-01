@@ -37,17 +37,15 @@ class TrainingLoop():
         val_dataset = CustomDataset(val_data, val_transform)
         self.train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
         self.val_loader = DataLoader(val_dataset, batch_size=64, shuffle=False)
+        self.val_total = len(val_dataset)
         
         # Define training device 
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        self.loss_fn.to(self.device)
         self.model.to(self.device)
     
         
     def training_step(self, images, labels):
-        # Move images and labels to device
-        images.to(self.device)
-        labels.to(self.device)
-        
         # Predict
         out = self.model(images)
         # actual = self.one_hot_label(labels)
@@ -63,10 +61,6 @@ class TrainingLoop():
         
     def validation_step(self, images, labels):
         with torch.no_grad():
-            # Create tensor batches from img paths
-            images.to(self.device)
-            labels.to(self.device)
-            
             # Calculate loss and accuracy
             out = self.model(images)
             # actual = self.one_hot_label(labels)
@@ -109,6 +103,8 @@ class TrainingLoop():
             
             # Batch training
             for images, labels in tqdm(self.train_loader, desc="Training"):
+                images = images.to(self.device)
+                labels = labels.to(self.device)
                 # Training step get loss
                 train_loss = self.training_step(images, labels)
                 train_losses.append(train_loss)
@@ -126,9 +122,11 @@ class TrainingLoop():
             if epoch == 1 or epoch % eval_interval == 0:
                 val_losses = []
                 correct = 0
-                total = 100
+                total = self.val_total
                 
                 for images, labels in tqdm(self.val_loader, desc="Validating"):
+                    images = images.to(self.device)
+                    labels = labels.to(self.device)
                     # Training step get loss
                     result = self.validation_step(images, labels)
                     val_loss = result['val_loss']
