@@ -4,16 +4,31 @@ import torchvision
 import os 
 from tqdm import tqdm
 
-from torch.nn.functional import one_hot
 from torch.utils.tensorboard import SummaryWriter
-from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 
-from .data_loader import filename_to_tensor, data_split, CustomDataset
-from .metric import accuracy, compare
+from .data_loader import data_split, CustomDataset
+from .metric import compare
 
 
 class TrainingLoop():
+    '''
+    Create train task to train nn.Module model
+    
+    Arguments:
+        model (torch.nn.Module): The classification model you want to train 
+        data_path (str): The data path, contains folders represent for classes
+        batch_size (int)
+        loss_fn (torch.nn): Loss function/criterion
+        optim_fn (torch.optim): Optimizer
+        lr (float): Learning rate
+        train_transform (torchvision.transforms): Transforms to augment and 
+                                                    change training images to tensor
+        val_transform (torchvision.transforms): Transforms to augment and 
+                                                    change images to tensor
+        (Optional)
+        data_split_ratio (float): the ratio of training images / total images
+    '''
     def __init__(self, model: torch.nn.Module, 
                         data_path: str, 
                         batch_size: int, 
@@ -32,7 +47,8 @@ class TrainingLoop():
         self.val_transform = val_transform
         
         # Prepare data for training and evaluation
-        train_data, val_data, self.num_classes = data_split(data_path, split_ratio=data_split_ratio)
+        train_data, val_data, self.class_names = data_split(data_path, split_ratio=data_split_ratio)
+        self.num_class = len(self.class_names)
         train_dataset = CustomDataset(train_data, train_transform)
         val_dataset = CustomDataset(val_data, val_transform)
         
@@ -45,50 +61,25 @@ class TrainingLoop():
         self.loss_fn.to(self.device)
         self.model.to(self.device)
         
-    # def training_step(self, images, labels):
-    #     # Predict
-    #     out = self.model(images)
-    #     # actual = self.one_hot_label(labels)
-        
-    #     # Backpropagation
-    #     self.optimizer.zero_grad()
-    #     loss = self.loss_fn(out, labels)
-    #     loss.backward()
-    #     self.optimizer.step()
-                
-    #     return loss.item()
-
-        
-    # def validation_step(self, images, labels):
-    #     with torch.no_grad():
-    #         # Calculate loss and accuracy
-    #         out = self.model(images)
-    #         # actual = self.one_hot_label(labels)
-    #         loss = self.loss_fn(out, labels)
-    #         correct = compare(out, labels)  
-            
-    #     return {'val_loss': loss.detach(), 'correct': correct}
-        
-        
-    # def one_hot_label(self, labels):
-    #     return one_hot(labels, self.num_classes).type(torch.float32).to(self.device)
-            
         
     def train(self, n_epochs, save_name, eval_interval=5):
         '''
+        Train model, save weights and logs
+        
         Parameters:
             n_epochs (int): Number of epoch trained
             save_name (os.path or str): dir name to save weight checkpoint
             eval_interval (int): validate after a number of epochs
         '''
+        
         # Prepare for saving and tensorboard
         save_path = os.path.join('runs', f"{save_name}{datetime.datetime.now()}" )
+        writer = SummaryWriter(f"runs/{save_name}")
         if os.path.exists(save_path):
             print(f"There is a folder named {save_name} in runs/")
             return
         else:
             os.makedirs(save_path)
-        writer = SummaryWriter(f"runs/{save_name}")
         
         # Max accuracy - used to find best checkpoint
         max_acc = 0
@@ -109,7 +100,6 @@ class TrainingLoop():
                 # Predict
                 out = self.model(images)
                 train_loss = self.loss_fn(out, labels)
-                print(train_loss)
                 
                 # Backpropagation
                 self.optimizer.zero_grad()
@@ -117,7 +107,6 @@ class TrainingLoop():
                 self.optimizer.step()
                 train_losses.append(train_loss.item())
                 
-                print(self.model.fc.weight)
                 
             # End training phase
             mean_train_loss = sum(train_losses)/len(train_losses)
@@ -129,27 +118,26 @@ class TrainingLoop():
             
             ###########################################################################################
             # After (eval_interval) epoch, go validating 
+            self.model.eval()
             if epoch == 1 or epoch % eval_interval == 0:
-                val_losses = []
-                total_correct = 0
-                total = self.val_total
-                
-                for images, labels in tqdm(self.val_loader, desc="Validating"):
-                    images = images.to(self.device)
-                    labels = labels.to(self.device)
+                with torch.no_grad():
+                    val_losses = []
+                    total_correct = 0
+                    total = self.val_total
                     
-                    # Training step get loss
-                    with torch.no_grad():
-                        # Calculate loss and accuracy
+                    for images, labels in tqdm(self.val_loader, desc="Validating"):
+                        images = images.to(self.device)
+                        labels = labels.to(self.device)
+                        
                         out = self.model(images)
-                        # actual = self.one_hot_label(labels)
                         val_loss = self.loss_fn(out, labels)
                         correct = compare(out, labels)  
                         
-                    val_losses.append(val_loss.item())    
-                    total_correct += correct
+                        val_losses.append(val_loss.item())    
+                        total_correct += correct
                     
-                acc = correct / total
+                # Calculate loss and accuracy
+                acc = total_correct / total
                 mean_val_loss = sum(val_losses)/len(val_losses)
                 
                 # Replace best checkpoint if loss < min_loss:
@@ -163,7 +151,7 @@ class TrainingLoop():
                 
                 # End validating
                 print(f"{datetime.datetime.now()} Val Loss {mean_val_loss}")
-                print(correct, total)
+                print(total_correct, total)
                 print(f"{datetime.datetime.now()} Val Accuracy {acc}")
                 print("="*70)
                 print("")
