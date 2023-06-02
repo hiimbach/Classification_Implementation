@@ -1,18 +1,8 @@
-import os
-import sys
 import torch
-import numpy as np
 
 from PIL import Image
 from torchvision import transforms
- 
-ROOT = os.getcwd()
-if str(ROOT) not in sys.path:
-    sys.path.append(str(ROOT))
 
-from model.vit import ViT
-from model.resnet import ResNet50
-from utils.data_loader import filename_to_tensor
 
 class MushroomClassifier():
     def __init__(self, model_path='model/scripted_model/wtf.pt'):
