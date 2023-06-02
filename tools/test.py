@@ -12,8 +12,6 @@ from torchvision import models, transforms
 
 from model.vit import  ViT
 from utils.train_loop import TrainingLoop
-from utils.data_loader import custom_dataloader, filename_to_tensor
-from torchsummary import summary
 from torchvision.models import resnet50, ResNet50_Weights
  
  
