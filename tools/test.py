@@ -48,7 +48,7 @@ train_task = TrainingLoop(model, data_path, batch_size, loss_fn, optim_fn, 0.001
 # import ipdb
 # ipdb.set_trace()
 
-# train_task.train(10, "test", 1)
+train_task.train(10, "test", 1)
 
 train_loader = train_task.train_loader
 val_loader = train_task.val_loader

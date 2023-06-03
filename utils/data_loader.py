@@ -173,7 +173,7 @@ def write_file_classnames(class_names, save_name, save_path=''):
     '''
     
     save_info = ','.join(class_names)
-    save_addr = os.path.join(save_path, save_name)
+    save_addr = os.path.join(save_path, f"{save_name}.txt")
     with open(save_addr, "w") as f:
         f.write(save_info)
         
