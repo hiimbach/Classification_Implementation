@@ -31,4 +31,4 @@ def script_model(name, weight_path=None, save_path='model/scripted_model'):
     torch.jit.save(scripted_model, os.path.join(save_path, name))
 
 if __name__ == '__main__':
-    script_model('resnet50.pt', weight_path='weights/')
+    script_model('resnet50.pt', weight_path='weights/last_ckpt2.pt')
