@@ -7,8 +7,8 @@ from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader
 
-from .data_loader import CustomDataset, data_split, write_file_classnames
-from .metric import compare
+from data_loader import CustomDataset, data_split, write_file_classnames
+from metric import compare
 
 
 class TrainingLoop():
@@ -26,7 +26,6 @@ class TrainingLoop():
                                                     change training images to tensor
         val_transform (torchvision.transforms): Transforms to augment and 
                                                     change images to tensor
-        class_name_save (str or os.path): Path to write file to save class names
         (Optional)
         data_split_ratio (float): the ratio of training images / total images
     '''
@@ -38,7 +37,6 @@ class TrainingLoop():
                         lr: float, 
                         train_transform: torchvision.transforms, 
                         val_transform: torchvision.transforms, 
-                        class_name_save: str,
                         data_split_ratio = 0.8):
         
         self.model = model
@@ -79,19 +77,26 @@ class TrainingLoop():
         if pretrained_weight:
             self.model.load_state_dict(torch.load(pretrained_weight, map_location=self.device))
         
-        # Prepare for saving and tensorboard
+        # Prepare for saving 
         save_path = os.path.join('runs', f"{save_name}")
-        writer = SummaryWriter(f"runs/{save_name}")
         
         # In case there is a folder named like save_path
-        i = 1
-        while os.path.exists(f"{save_path}_{i}"):
-            i += 1
-        save_path = f"{save_path}_{i}"
-
+        if os.path.exists(save_path):
+            i = 1
+            while os.path.exists(f"{save_path}_{i}"):
+                i += 1
+            save_path = f"{save_path}_{i}"
+            
         # Create folder and save file class_names
         os.makedirs(save_path)
         write_file_classnames(class_names=self.class_names, save_name="class_names", save_path=save_path)
+        
+        # Save tensor log
+        writer = SummaryWriter(save_path)
+        
+        # Create folder to save weights
+        save_weight_path = os.path.join(save_path, "weights")
+        os.mkdir(save_weight_path)
         
         # Max accuracy - used to find best checkpoint
         max_acc = 0
@@ -129,7 +134,7 @@ class TrainingLoop():
             print(f"{datetime.datetime.now()} Epoch {epoch}: Training loss: {mean_train_loss}")
             
             # Save last checkpoint and write result to tensorboard
-            torch.save(self.model.state_dict(), os.path.join(save_path, "last_ckpt.pt"))
+            torch.save(self.model.state_dict(), os.path.join(save_weight_path, "last_ckpt.pt"))
             writer.add_scalar("Loss/train", mean_train_loss, epoch)
             
             ###########################################################################################
@@ -159,7 +164,7 @@ class TrainingLoop():
                 # Replace best checkpoint if loss < min_loss:
                 if acc > max_acc:
                     max_acc = acc
-                    torch.save(self.model.state_dict(), os.path.join(save_path, "best_ckpt.pt"))
+                    torch.save(self.model.state_dict(), os.path.join(save_weight_path, "best_ckpt.pt"))
             
                 # Write to tensorboard
                 writer.add_scalar("Loss/val", mean_val_loss, epoch)
