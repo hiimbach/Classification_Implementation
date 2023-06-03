@@ -1,4 +1,5 @@
 import os 
+import torch
 
 from torch.utils.data import Dataset
 from PIL import Image, ImageFile
@@ -30,7 +31,7 @@ def data_split(dir, split_ratio=0.8):
     class_names = []
     class_idx = -1
     
-    # First we read all data from the dir
+    # First read all data from the dir
     # Each folder represents for a class
     for folder in os.listdir(dir):
         folder_path = os.path.join(dir, folder)
@@ -47,7 +48,7 @@ def data_split(dir, split_ratio=0.8):
             data_folder['img_path'].append(img_path)
             data_folder['label'].append(class_idx)
             
-    # Now we create train dict and val dict to split data
+    # Create train dict and val dict to split data
     train_data = {'img_path': [], 'label': []}
     val_data = {'img_path': [], 'label': []}
 
@@ -81,20 +82,99 @@ class CustomDataset(Dataset):
         self.transform = transform
         
     def __getitem__(self, idx):
-        try:
-            label = self.data['label'][idx]
-            image = Image.open(self.data['img_path'][idx]).convert("RGB")
-            if self.transform is not None:
-                image = self.transform(image)
-            return image, label
-        except:
-            image = Image.open('data/mushrooms/Agaricus/000_ePQknW8cTp8.jpg').convert("RGB")
-            label = 0
-            if self.transform is not None:
-                image = self.transform(image)
-            return image, label
+        label = self.data['label'][idx]
+        image = Image.open(self.data['img_path'][idx]).convert("RGB")
+        if self.transform is not None:
+            image = self.transform(image)
+        return image, label
         
     def __len__(self):
         return len(self.data['label'])
     
 
+
+def filenames_to_tensor(files, transform):
+    '''
+    Parameters:
+        files (list): list of file name (str)
+        transform (torchvision.transforms.transforms.Compose): requires to transform to Tensor after augment
+        
+    Return:
+        img_batch (torch.Tensor)    
+    '''
+    
+    # This list is used to store all tensor and concat at the end
+    tensor_list = []
+    
+    # Read all files and transform it to tensor
+    for img_path in files:
+        img = Image.open(img_path)
+        # Unsqueeze is used to expand dim to concat later
+        tensor_list.append(torch.unsqueeze(transform(img), dim=0))
+        
+    return torch.cat(tensor_list)
+
+
+def custom_loader(data, batch_size):
+    # Use to split data to batches when inferencing
+    '''
+    Argument: 
+        data (list): list of images' paths
+        
+    Return:
+        data_loader: list(list)
+    '''
+    
+    data_loader = []
+    data_len = len(data)
+    
+    i = 0
+    while (i+batch_size) < data_len:
+        img_batch = data[i:i+batch_size]
+        
+        data_loader.append(img_batch)
+        
+        i += batch_size
+        
+    # Because there is some little data left which is not enough to create a full batch,
+    # we group it to the final batch 
+    img_batch = data[i:]
+    
+    data_loader.append(img_batch)
+    
+    return data_loader
+
+
+def read_file_classnames(path):
+    '''
+    Arguments:
+        path (str): Path to file contains class names
+        
+    Return: 
+        class_names (list): List of class names
+    '''
+    
+    with open(path) as f:
+        all_names = f.readline()
+        
+    class_names = [name.strip() for name in all_names.split(',')]
+    
+    return class_names
+    
+    
+def write_file_classnames(class_names, save_name, save_path=''):
+    '''
+    Write a file contains names of classes, split by a ,
+    
+    Arguments:
+        class_names (list(str)): List of class names
+        save_path (str or os.path): Path of folder to save at
+        save_name (str): Name of saved file
+    '''
+    
+    save_info = ','.join(class_names)
+    save_addr = os.path.join(save_path, save_name)
+    with open(save_addr, "w") as f:
+        f.write(save_info)
+        
+    return 
