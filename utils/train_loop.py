@@ -7,7 +7,7 @@ from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader
 
-from .data_loader import data_split, CustomDataset
+from .data_loader import CustomDataset, data_split, write_file_classnames
 from .metric import compare
 
 
@@ -26,6 +26,7 @@ class TrainingLoop():
                                                     change training images to tensor
         val_transform (torchvision.transforms): Transforms to augment and 
                                                     change images to tensor
+        class_name_save (str or os.path): Path to write file to save class names
         (Optional)
         data_split_ratio (float): the ratio of training images / total images
     '''
@@ -37,6 +38,7 @@ class TrainingLoop():
                         lr: float, 
                         train_transform: torchvision.transforms, 
                         val_transform: torchvision.transforms, 
+                        class_name_save: str,
                         data_split_ratio = 0.8):
         
         self.model = model
@@ -62,7 +64,7 @@ class TrainingLoop():
         self.model.to(self.device)
         
         
-    def train(self, n_epochs, save_name, eval_interval=5):
+    def train(self, n_epochs, save_name, eval_interval=5, pretrained_weight=None):
         '''
         Train model, save weights and logs
         
@@ -70,16 +72,26 @@ class TrainingLoop():
             n_epochs (int): Number of epoch trained
             save_name (os.path or str): dir name to save weight checkpoint
             eval_interval (int): validate after a number of epochs
+            pretrained_weight(os.path or str): path to pretrained weight
         '''
         
+        # Load pretrained weight
+        if pretrained_weight:
+            self.model.load_state_dict(torch.load(pretrained_weight, map_location=self.device))
+        
         # Prepare for saving and tensorboard
-        save_path = os.path.join('runs', f"{save_name}{datetime.datetime.now()}" )
+        save_path = os.path.join('runs', f"{save_name}")
         writer = SummaryWriter(f"runs/{save_name}")
-        if os.path.exists(save_path):
-            print(f"There is a folder named {save_name} in runs/")
-            return
-        else:
-            os.makedirs(save_path)
+        
+        # In case there is a folder named like save_path
+        i = 1
+        while os.path.exists(f"{save_path}_{i}"):
+            i += 1
+        save_path = f"{save_path}_{i}"
+
+        # Create folder and save file class_names
+        os.makedirs(save_path)
+        write_file_classnames(class_names=self.class_names, save_name="class_names", save_path=save_path)
         
         # Max accuracy - used to find best checkpoint
         max_acc = 0
@@ -94,6 +106,10 @@ class TrainingLoop():
             
             # Batch training
             for images, labels in tqdm(self.train_loader, desc="Training"):
+                # Write images to tensorboard
+                img_grid = torchvision.utils.make_grid(images)
+                writer.add_image('four_fashion_mnist_images', img_grid)
+                
                 images = images.to(self.device)
                 labels = labels.to(self.device)
                 
