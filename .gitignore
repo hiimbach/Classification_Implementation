@@ -168,6 +168,6 @@ events*
 runs/
 
 # Weights
-*.pt
 *.pth
-model/scripted_model/*
+/data
+/runs
