@@ -114,6 +114,3 @@ if __name__ == '__main__':
     result = classifier.predict(origin_path)
     print(result)
     
-    img = cv2.imread(origin_path)
-    
-    print(classifier.predict_from_image(img))
