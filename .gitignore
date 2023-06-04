@@ -169,5 +169,7 @@ runs/
 
 # Weights
 *.pth
+*.pt
 /data
 /runs
+model/scripted_model/*
