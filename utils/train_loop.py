@@ -7,8 +7,8 @@ from tqdm import tqdm
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader
 
-from data_loader import CustomDataset, data_split, write_file_classnames
-from metric import compare
+from .data_loader import CustomDataset, data_split, write_file_classnames
+from .metric import compare
 
 
 class TrainingLoop():
