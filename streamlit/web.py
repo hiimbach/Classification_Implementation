@@ -12,8 +12,8 @@ if str(ROOT) not in sys.path:
 from tools.infer import MushroomClassifier
 
 # Init model
-class_names_path = 'runs/test/class_names.txt'
-classifier = MushroomClassifier(weight_path='runs/colab/weights/last_ckpt3.pt', file_names_path='runs/colab/class_names.txt')
+class_names_path = 'model/scripted_model/resnet50/class_names.txt'
+classifier = MushroomClassifier(model_path='model/scripted_model/resnet50/scripted_model.pt', file_names_path=class_names_path)
 
 # Introduce
 st.header("Mushrooms recognition sample app")
