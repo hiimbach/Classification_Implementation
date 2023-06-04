@@ -99,7 +99,7 @@ The training result then will be in the folder `runs`.
 Streamlit is a free, open-source, all-python framework that enables data scientists to quickly build interactive dashboards and machine learning web apps.
 If you want test with streamlit, let's create a new terminal, and run:
 ```
-streamlit run streamlit/streamlit.py
+streamlit run streamlit/web.py
 ```
 Hosted at http://0.0.0.0:8001
 
