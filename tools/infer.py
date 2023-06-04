@@ -1,6 +1,9 @@
 import torch
 import os
 import sys
+import PIL
+import cv2
+import numpy as np
 
 from PIL import Image
 from torchvision import transforms
@@ -88,12 +91,29 @@ class MushroomClassifier():
                 print("Path must belongs to an image or a folder")
                 return    
                     
-            
+    @torch.inference_mode()
+    def predict_from_image(self, img:np.ndarray, use_cv2=False) -> int:
+        if bool(use_cv2):
+            img = img[:,:,::-1]
+        to_pil = transforms.ToPILImage()
+        tensor = self.tf(to_pil(img))
+        tensor.unsqueeze_(dim=0)
+        
+        out = self.model(tensor)
+        _, preds = torch.max(out, dim=1)
+        if self.class_names:
+            return self.class_names[int(preds[0])]
+        else: 
+            return int(preds[0])
+
 
 if __name__ == '__main__':
     class_names_path = 'runs/test/class_names.txt'
-    classifier = MushroomClassifier(weight_path='weights/last_ckpt3.pt')
-    origin_path = "data/mushrooms/Suillus"
+    classifier = MushroomClassifier(model_path='model/scripted_model/resnet50/scripted_model.pt')
+    origin_path = "data/mushrooms/Suillus/006_8Su_kJ43Mho.jpg"
     result = classifier.predict(origin_path)
     print(result)
-
+    
+    img = cv2.imread(origin_path)
+    
+    print(classifier.predict_from_image(img))
