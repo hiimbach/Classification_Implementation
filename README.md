@@ -1,4 +1,4 @@
-# Mushrooms Clasification
+# Mushrooms Classification
 
 ## Introduction
 This is a built-from-scratch deep learning project classifying mushrooms classification. \
