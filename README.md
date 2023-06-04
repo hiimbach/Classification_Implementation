@@ -1,4 +1,4 @@
-# Food_Recognition
+# Mushrooms Clasification
 
 ## Introduction
 This is a built-from-scratch deep learning project classifying mushrooms classification. \
