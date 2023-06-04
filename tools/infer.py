@@ -109,7 +109,8 @@ class MushroomClassifier():
 
 if __name__ == '__main__':
     class_names_path = 'model/scripted_model/resnet50/class_names.txt'
-    classifier = MushroomClassifier(model_path='model/scripted_model/resnet50/scripted_model.pt')
+    classifier = MushroomClassifier(model_path='model/scripted_model/resnet50/scripted_model.pt', file_names_path=class_names_path)
+    
     origin_path = "data/mushrooms/Suillus"
     result = classifier.predict(origin_path)
     print(result)
