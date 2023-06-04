@@ -111,7 +111,7 @@ if __name__ == '__main__':
     class_names_path = 'model/scripted_model/resnet50/class_names.txt'
     classifier = MushroomClassifier(model_path='model/scripted_model/resnet50/scripted_model.pt', file_names_path=class_names_path)
     
-    origin_path = "data/mushrooms/Suillus"
+    origin_path = "data/mushrooms/Suillus/006_8Su_kJ43Mho.jpg"
     result = classifier.predict(origin_path)
     print(result)
     
